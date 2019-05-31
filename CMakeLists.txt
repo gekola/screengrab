@@ -12,6 +12,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # options
 option(SG_DBUS_NOTIFY "Enable D-Bus notifications" ON)
 option(SG_EXT_EDIT "Enable ability to edit screenshots in external editor" ON)
+option(SG_USE_SYSTEM_KF5 "Use KWindowSystem for active window detection" ON)
 option(UPDATE_TRANSLATIONS "Update source translation translations/*.ts files" OFF)
 
 # Minimum Versions
@@ -23,7 +24,9 @@ find_package(Qt5LinguistTools  ${QT_MINIMUM_VERSION} REQUIRED)
 find_package(Qt5Network ${QT_MINIMUM_VERSION} REQUIRED)
 find_package(Qt5Widgets ${QT_MINIMUM_VERSION} REQUIRED)
 find_package(Qt5X11Extras ${QT_MINIMUM_VERSION} REQUIRED)
-find_package(KF5WindowSystem ${KF5_MINIMUM_VERSION} REQUIRED)
+if (SG_USE_SYSTEM_KF5)
+    find_package(KF5WindowSystem ${KF5_MINIMUM_VERSION} REQUIRED)
+endif(SG_USE_SYSTEM_KF5)
 
 # right now we declare it as required
 find_package(X11 REQUIRED)
@@ -89,6 +92,7 @@ endif()
 message(STATUS "Editing screenshots in external editor support: " ${SG_EXT_EDIT})
 message(STATUS "Enable D-Bus notifications: " ${SG_DBUS_NOTIFY})
 message(STATUS "Use system Qxt Library: " ${SG_USE_SYSTEM_QXT})
+message(STATUS "Use system KWindowSystem: " ${SG_USE_SYSTEM_KF5})
 message(STATUS "Update source translation translations/*.ts files: " ${UPDATE_TRANSLATIONS})
 
 # docs
@@ -190,6 +194,10 @@ if(SG_DBUS_NOTIFY)
     target_link_libraries(screengrab Qt5::DBus)
 endif()
 
+if(SG_USE_SYSTEM_KF5)
+    target_link_libraries(sceeengrab KF5::WindowSystem)
+endif()
+
 if (X11_XCB_FOUND)
     add_definitions( -DX11_XCB_FOUND="1")
     target_link_libraries(screengrab ${X11_XCB_LIBRARIES})
@@ -211,7 +219,7 @@ if (XCB_XFIXES_FOUND)
 endif()
 
 # Link with Network and X11Extras. See pull#86. TODO: Should be optional when upload module is needed.
-target_link_libraries(screengrab qkeysequencewidget Qt5::Widgets KF5::WindowSystem Qt5::X11Extras Qt5::Network ${X11_LIBRARIES})
+target_link_libraries(screengrab qkeysequencewidget Qt5::Widgets Qt5::X11Extras Qt5::Network ${X11_LIBRARIES})
 
 # installing
 install(TARGETS screengrab RUNTIME DESTINATION bin)
